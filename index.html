@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,22 +11,37 @@
     }
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(to right, #f8f9fa, #e9ecef);
+      background-image: url('https://stanforddaily.com/wp-content/uploads/2021/10/7-1-scaled.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
       padding: 20px;
-      max-width: 800px;
-      margin: auto;
+      margin: 0;
       color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+    [data-theme="dark"] body {
+      background-image: url('https://content.heterodoxacademy.org/cdn-cgi/image/w=600,h=449,q=60,f=auto,dpr=2.5,g=0.5x0.5,fit=cover/uploads/MIT.jpg');
+      background-size: cover;
+      background-position: center;
+      color: #eee;
     }
     .quiz-box {
-      background: white;
+      background: rgba(255, 255, 255, 0.95);
       padding: 30px;
       border-radius: 20px;
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease-in-out;
     }
+    [data-theme="dark"] .quiz-box {
+      background: rgba(30, 30, 30, 0.95);
+    }
     h2 {
       color: #212529;
       font-weight: 600;
+    }
+    [data-theme="dark"] h2 {
+      color: #f1f1f1;
     }
     .question {
       margin-bottom: 25px;
@@ -98,173 +113,65 @@
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    .theme-toggle {
+      margin-bottom: 20px;
+      text-align: right;
+    }
+    .greeting {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 20px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
   </style>
 </head>
 <body>
+  <div class="theme-toggle">
+    <label>
+      <input type="checkbox" id="themeSwitch"> Dark Mode
+    </label>
+  </div>
+
   <div class="quiz-box" id="quizBox">
     <div id="progressBarContainer">
       <div id="progressBar"></div>
     </div>
-    <div id="questionContainer"></div>
-    <button id="nextBtn">Next</button>
+    <div id="userNameInput">
+      <label for="userName">Enter your name:</label>
+      <input type="text" id="userName" placeholder="Your name...">
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+    <div class="greeting hidden" id="greeting"></div>
+    <div id="questionContainer" class="hidden"></div>
+    <button id="nextBtn" class="hidden">Next</button>
     <div class="result hidden" id="resultBox"></div>
     <div class="college-images hidden" id="collegeImages"></div>
     <button id="retakeBtn" class="hidden">Retake Quiz</button>
   </div>
 
   <script>
-    const majors = ["engineering", "literature", "medicine", "design", "business", "computer", "psychology", "education"];
+    const themeToggle = document.getElementById('themeSwitch');
+    themeToggle.addEventListener('change', () => {
+      document.documentElement.setAttribute('data-theme', themeToggle.checked ? 'dark' : 'light');
+    });
 
-    const majorNames = {
-      engineering: "Engineering",
-      literature: "Literature",
-      medicine: "Medicine",
-      design: "Design",
-      business: "Business",
-      computer: "Computer Science",
-      psychology: "Psychology",
-      education: "Education"
-    };
+    let userName = '';
 
-    const majorColleges = {
-      engineering: {
-        text: "MIT, Stanford, UC Berkeley",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_Dome_night1.jpg", "https://upload.wikimedia.org/wikipedia/commons/4/4d/Stanford_University_campus_from_above.jpg", "https://upload.wikimedia.org/wikipedia/commons/3/3e/UCBerkeleycampus.jpg"]
-      },
-      literature: {
-        text: "Yale, Stanford, Harvard",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/8/89/Yale_University_-_Sterling_Memorial_Library.jpg", "https://upload.wikimedia.org/wikipedia/commons/4/4d/Stanford_University_campus_from_above.jpg", "https://upload.wikimedia.org/wikipedia/commons/2/29/Harvard_University_Widener_Library.jpg"]
-      },
-      medicine: {
-        text: "Harvard, Johns Hopkins, UCSF",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/2/29/Harvard_University_Widener_Library.jpg", "https://upload.wikimedia.org/wikipedia/commons/2/22/Johns_Hopkins_Hospital_2.jpg", "https://upload.wikimedia.org/wikipedia/commons/1/1a/UCSF_Medical_Center_Parnassus.jpg"]
-      },
-      design: {
-        text: "RISD, Parsons, MIT",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/0/09/Rhode_Island_School_of_Design.jpg", "https://upload.wikimedia.org/wikipedia/commons/5/5f/Parsons_School_of_Design.jpg", "https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_Dome_night1.jpg"]
-      },
-      business: {
-        text: "Wharton, Michigan Ross, NYU Stern",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/8/8d/Wharton_School_of_Business.jpg", "https://upload.wikimedia.org/wikipedia/commons/1/1e/Michigan_Ross_School.jpg", "https://upload.wikimedia.org/wikipedia/commons/d/dd/NYU_Stern_School_of_Business.jpg"]
-      },
-      computer: {
-        text: "MIT, Stanford, Carnegie Mellon",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/0/0c/MIT_Dome_night1.jpg", "https://upload.wikimedia.org/wikipedia/commons/4/4d/Stanford_University_campus_from_above.jpg", "https://upload.wikimedia.org/wikipedia/commons/6/67/Carnegie_Mellon_University_campus.jpg"]
-      },
-      psychology: {
-        text: "Stanford, UC Berkeley, Harvard",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/4/4d/Stanford_University_campus_from_above.jpg", "https://upload.wikimedia.org/wikipedia/commons/3/3e/UCBerkeleycampus.jpg", "https://upload.wikimedia.org/wikipedia/commons/2/29/Harvard_University_Widener_Library.jpg"]
-      },
-      education: {
-        text: "Harvard, Stanford, Vanderbilt",
-        images: ["https://upload.wikimedia.org/wikipedia/commons/2/29/Harvard_University_Widener_Library.jpg", "https://upload.wikimedia.org/wikipedia/commons/4/4d/Stanford_University_campus_from_above.jpg", "https://upload.wikimedia.org/wikipedia/commons/f/f1/Vanderbilt_campus_skyline.jpg"]
-      }
-    };
-
-    const questions = [
-      { question: "Which subject do you enjoy most?", options: [
-        { text: "Math", value: "engineering" },
-        { text: "Reading & Writing", value: "literature" },
-        { text: "Biology", value: "medicine" },
-        { text: "Art or Design", value: "design" }
-      ]},
-      { question: "Which career sounds most interesting?", options: [
-        { text: "Software Developer", value: "computer" },
-        { text: "Marketing Manager", value: "business" },
-        { text: "Therapist", value: "psychology" },
-        { text: "High School Teacher", value: "education" }
-      ]},
-      { question: "What activity do you enjoy?", options: [
-        { text: "Solving complex problems", value: "engineering" },
-        { text: "Writing essays or stories", value: "literature" },
-        { text: "Learning about anatomy", value: "medicine" },
-        { text: "Creating digital art", value: "design" }
-      ]},
-      { question: "What’s your dream job environment?", options: [
-        { text: "Big tech company", value: "computer" },
-        { text: "Startup or firm", value: "business" },
-        { text: "Counseling office", value: "psychology" },
-        { text: "Classroom", value: "education" }
-      ]},
-      { question: "Which type of thinking fits you best?", options: [
-        { text: "Logical & Analytical", value: "engineering" },
-        { text: "Imaginative & Expressive", value: "literature" },
-        { text: "Empathetic & Caring", value: "medicine" },
-        { text: "Creative & Visual", value: "design" }
-      ]},
-      { question: "What do you value in a career?", options: [
-        { text: "Innovation", value: "computer" },
-        { text: "Leadership", value: "business" },
-        { text: "Helping Others", value: "psychology" },
-        { text: "Inspiring Youth", value: "education" }
-      ]}
-    ];
-
-    let currentQuestion = 0;
-    const scores = {};
-    majors.forEach(m => scores[m] = 0);
-
-    const questionContainer = document.getElementById("questionContainer");
-    const nextBtn = document.getElementById("nextBtn");
-    const resultBox = document.getElementById("resultBox");
-    const retakeBtn = document.getElementById("retakeBtn");
-    const collegeImages = document.getElementById("collegeImages");
-
-    function updateProgressBar(current, total) {
-      const progress = ((current + 1) / total) * 100;
-      document.getElementById("progressBar").style.width = progress + "%";
-    }
-
-    function loadQuestion() {
-      const q = questions[currentQuestion];
-      updateProgressBar(currentQuestion, questions.length);
-      questionContainer.innerHTML = `
-        <div class="question">
-          <h2>Q${currentQuestion + 1}: ${q.question}</h2>
-          ${q.options.map(opt => `<label><input type="radio" name="answer" value="${opt.value}"> ${opt.text}</label>`).join('')}
-        </div>
-      `;
-    }
-
-    function showResult() {
-      let bestMatch = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
-      const majorData = majorColleges[bestMatch];
-      resultBox.innerHTML = `🎓 A great major for you might be: <strong>${majorNames[bestMatch]}</strong><br>
-        🏫 Top colleges: ${majorData.text}`;
-      collegeImages.innerHTML = majorData.images.map(src => `<img src="${src}" alt="College image">`).join('');
-      resultBox.classList.remove("hidden");
-      collegeImages.classList.remove("hidden");
-      nextBtn.classList.add("hidden");
-      retakeBtn.classList.remove("hidden");
-    }
-
-    nextBtn.addEventListener("click", () => {
-      const selected = document.querySelector('input[name="answer"]:checked');
-      if (!selected) {
-        alert("Please choose an answer.");
+    function startQuiz() {
+      const nameInput = document.getElementById('userName').value.trim();
+      if (!nameInput) {
+        alert('Please enter your name to start.');
         return;
       }
-      scores[selected.value]++;
-      currentQuestion++;
-
-      if (currentQuestion < questions.length) {
-        loadQuestion();
-      } else {
-        showResult();
-      }
-    });
-
-    retakeBtn.addEventListener("click", () => {
-      currentQuestion = 0;
-      majors.forEach(m => scores[m] = 0);
-      resultBox.classList.add("hidden");
-      collegeImages.classList.add("hidden");
-      retakeBtn.classList.add("hidden");
-      nextBtn.classList.remove("hidden");
-      loadQuestion();
-    });
-
-    loadQuestion();
+      userName = nameInput;
+      document.getElementById('userNameInput').classList.add('hidden');
+      const greeting = document.getElementById('greeting');
+      greeting.textContent = `Hi, ${userName}! Let's find the perfect major for you.`;
+      greeting.classList.remove('hidden');
+      document.getElementById('questionContainer').classList.remove('hidden');
+      document.getElementById('nextBtn').classList.remove('hidden');
+      // Now the quiz starts...
+    }
   </script>
 </body>
 </html>
